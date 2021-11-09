@@ -27,54 +27,54 @@ token=$(printf "${jssuser}:${jsspass}" | iconv -t ISO-8859-1 | base64 -i -)
 #
 #
 if [[ "${device_type}" == "mobiledevices" ]] ;then
-echo "mobile Devices selected" >> ${log_path}
-echo " ${time_stamp} Starting the Kessel run hopefully done in less than 12" >> ${log_path}
-groupname=$(printf "%s\n" "${groupname_raw}" | sed 's/ /%20/g' )
-echo "targeting ${groupname_raw} as ${groupname} maximum fire power" >> ${log_path}
-mobile_device_id_raw=($(curl -sk --header "authorization: Basic ${token}" ${jssurl}/JSSResource/mobiledevicegroups/name/${groupname} | xmllint --format - | awk -F'[<|>]' '/<id>/{print $3}' | awk 'NR>0' ))
-#build Array
-list1=${#mobile_device_id_raw[@]}
-echo "devices found ${list1} the droids we are looking for" >> ${log_path}
-for ((i = 0 ; i < ${list1} ; i++)); do
-id_list=$(echo ${mobile_device_id_raw[@]:$start:$elements} | sed 's/ /,/g')
-if ! [ -z "${id_list}" ]; then
-echo 'Processing '"${id_list}" >> ${log_path}
-#cancel commands pending and failed
-curl -sk --header "authorization: Basic ${token}" ${jssurl}/JSSResource/commandflush/mobiledevices/id/${id_list}/status/${flush_type} DELETE
+	echo "mobile Devices selected" >> ${log_path}
+	echo " ${time_stamp} Starting the Kessel run hopefully done in less than 12" >> ${log_path}
+	groupname=$(printf "%s\n" "${groupname_raw}" | sed 's/ /%20/g' )
+	echo "targeting ${groupname_raw} as ${groupname} maximum fire power" >> ${log_path}
+	mobile_device_id_raw=($(curl -sk --header "authorization: Basic ${token}" ${jssurl}/JSSResource/mobiledevicegroups/name/${groupname} | xmllint --format - | awk -F'[<|>]' '/<id>/{print $3}' | awk 'NR>0' ))
+	#build Array
+	list1=${#mobile_device_id_raw[@]}
+	echo "devices found ${list1} the droids we are looking for" >> ${log_path}
+	for ((i = 0 ; i < ${list1} ; i++)); do
+		id_list=$(echo ${mobile_device_id_raw[@]:$start:$elements} | sed 's/ /,/g')
+		if ! [ -z "${id_list}" ]; then
+			echo 'Processing '"${id_list} results below:" >> ${log_path}
+			#cancel commands pending and failed
+			curl -sk --header "authorization: Basic ${token}" ${jssurl}/JSSResource/commandflush/mobiledevices/id/${id_list}/status/${flush_type} DELETE >> ${log_path}
+		else
+			echo 'Finished Processing' >> ${log_path}
+			break
+		fi
+		sleep ${wait_time}
+		(( start=start+${elements} ))
+	done
+	time_stamp2=$(date)
+	echo "${time_stamp2} finished the Kessel run" >> ${log_path}
+	#############################################################################
 else
-echo 'Finished Processing' >> ${log_path}
-break
-fi
-sleep ${wait_time}
-(( start=start+${elements} ))
-done
-time_stamp2=$(date)
-echo "${time_stamp2} finished the Kessel run" >> ${log_path}
-#############################################################################
-else
-#############################################################################
-echo "computers selected" >> ${log_path}
-groupname=$(printf "%s\n" "${groupname_raw}" | sed 's/ /%20/g' )
-echo " ${time_stamp} Starting the Kessel run hopefully done in less than 12" >> ${log_path}
-echo "targeting ${groupname_raw} as ${groupname} maximum fire power" >> ${log_path}
-computer_device_id_raw=($(curl -sk --header "authorization: Basic ${token}" ${jssurl}/JSSResource/computergroups/name/${groupname} | xmllint --format - | awk -F'[<|>]' '/<id>/{print $3}' | awk 'NR>0' ))
-#Build Array
-list1=${#computer_device_id_raw[@]}
-echo "devices found ${list1} the droids we are looking for" >> ${log_path}
-for ((i = 0 ; i < ${list1} ; i++)); do
-id_list=$(echo ${computer_device_id_raw[@]:$start:$elements} | sed 's/ /,/g')
-if ! [ -z "${id_list}" ]; then
-echo 'Processing '"${id_list}" >> ${log_path}
-#cancel commands pending and failed
-curl -sk --header "authorization: Basic ${token}" ${jssurl}/JSSResource/commandflush/computers/id/${id_list}/status/${flush_type} DELETE
-else
-echo 'Finished Processing' >> ${log_path}
-break
-fi
-sleep ${wait_time}
-(( start=start+${elements} ))
-done
-time_stamp2=$(date)
-echo "${time_stamp2} finished the Kessel run" >> ${log_path}
-############################################################################
+	#############################################################################
+	echo "computers selected" >> ${log_path}
+	groupname=$(printf "%s\n" "${groupname_raw}" | sed 's/ /%20/g' )
+	echo " ${time_stamp} Starting the Kessel run hopefully done in less than 12" >> ${log_path}
+	echo "targeting ${groupname_raw} as ${groupname} maximum fire power" >> ${log_path}
+	computer_device_id_raw=($(curl -sk --header "authorization: Basic ${token}" ${jssurl}/JSSResource/computergroups/name/${groupname} | xmllint --format - | awk -F'[<|>]' '/<id>/{print $3}' | awk 'NR>0' ))
+	#Build Array
+	list1=${#computer_device_id_raw[@]}
+	echo "devices found ${list1} the droids we are looking for" >> ${log_path}
+	for ((i = 0 ; i < ${list1} ; i++)); do
+		id_list=$(echo ${computer_device_id_raw[@]:$start:$elements} | sed 's/ /,/g')
+		if ! [ -z "${id_list}" ]; then
+			echo 'Processing '"${id_list} results below:" >> ${log_path}
+			#cancel commands pending and failed
+			curl -sk --header "authorization: Basic ${token}" ${jssurl}/JSSResource/commandflush/computers/id/${id_list}/status/${flush_type} DELETE >> ${log_path}
+		else
+			echo 'Finished Processing' >> ${log_path}
+			break
+		fi
+		sleep ${wait_time}
+		(( start=start+${elements} ))
+	done
+	time_stamp2=$(date)
+	echo "${time_stamp2} finished the Kessel run" >> ${log_path}
+	############################################################################
 fi
